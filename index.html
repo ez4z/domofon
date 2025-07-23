@@ -1,8 +1,3 @@
-from zipfile import ZipFile
-import os
-
-# HTML content with real image and unique sounds per key
-html_content = '''
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -19,44 +14,44 @@ html_content = '''
     }
     .panel {
       position: relative;
-      width: 768px;
-      height: 961px;
-      background: url("domofon-bg.png") no-repeat center/contain;
+      width: 496px;
+      height: 568px;
+      background: url("domofon-bg.png") no-repeat center/cover;
     }
     .screen {
       position: absolute;
-      top: 65px;
-      left: 280px;
-      width: 200px;
-      height: 40px;
+      top: 55px;
+      left: 275px;
+      width: 100px;
+      height: 28px;
       background: black;
       color: #0f0;
-      font: bold 32px monospace;
+      font: bold 20px monospace;
       text-align: center;
-      line-height: 40px;
-      border-radius: 5px;
+      line-height: 28px;
+      border-radius: 3px;
     }
     .key {
       position: absolute;
-      width: 60px;
-      height: 60px;
+      width: 42px;
+      height: 42px;
       background: transparent;
       border: none;
       cursor: pointer;
     }
-    /* Button layout roughly based on visual image coordinates */
-    .k1 { top: 460px; left: 430px; }
-    .k2 { top: 460px; left: 510px; }
-    .k3 { top: 460px; left: 590px; }
-    .k4 { top: 540px; left: 430px; }
-    .k5 { top: 540px; left: 510px; }
-    .k6 { top: 540px; left: 590px; }
-    .k7 { top: 620px; left: 430px; }
-    .k8 { top: 620px; left: 510px; }
-    .k9 { top: 620px; left: 590px; }
-    .kk { top: 700px; left: 430px; } /* key icon */
-    .k0 { top: 700px; left: 510px; }
-    .kc { top: 700px; left: 590px; } /* C (clear) */
+    /* Układ przycisków wg obrazu */
+    .k1 { top: 220px; left: 275px; }
+    .k2 { top: 220px; left: 325px; }
+    .k3 { top: 220px; left: 375px; }
+    .k4 { top: 270px; left: 275px; }
+    .k5 { top: 270px; left: 325px; }
+    .k6 { top: 270px; left: 375px; }
+    .k7 { top: 320px; left: 275px; }
+    .k8 { top: 320px; left: 325px; }
+    .k9 { top: 320px; left: 375px; }
+    .kk { top: 370px; left: 275px; } /* klucz */
+    .k0 { top: 370px; left: 325px; }
+    .kc { top: 370px; left: 375px; } /* C */
   </style>
 </head>
 <body>
@@ -99,14 +94,14 @@ html_content = '''
       const gain = ctx.createGain();
       osc.type = "square";
       osc.frequency.value = freq;
-      gain.gain.value = 0.1;
+      gain.gain.value = 0.15;
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
       setTimeout(() => {
         osc.stop();
         ctx.close();
-      }, 100);
+      }, 120);
     }
 
     function press(digit) {
@@ -136,17 +131,3 @@ html_content = '''
   </script>
 </body>
 </html>
-'''
-
-# Save HTML file
-html_path = "/mnt/data/index.html"
-with open(html_path, "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-# Create ZIP file
-zip_path = "/mnt/data/domofon_cp2503r_real.zip"
-with ZipFile(zip_path, "w") as zipf:
-    zipf.write(html_path, arcname="index.html")
-    zipf.write("/mnt/data/domofon-bg.png", arcname="domofon-bg.png")
-
-zip_path
