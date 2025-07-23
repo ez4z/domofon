@@ -1,51 +1,67 @@
+from zipfile import ZipFile
+import os
 
+# HTML content with real image and unique sounds per key
+html_content = '''
 <!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Laskomex CP‑2503R symulator</title>
+  <title>Domofon CP‑2503R</title>
   <style>
-    body{background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}
-    .panel{
-      position:relative;
-      width:211px; height:300px;
-      background:url("domofon-bg.png") no-repeat center/cover;
+    body {
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-    .screen{
-      position:absolute;top:15px;left:50px;
-      width:110px;height:25px;
-      background:#000;color:#0f0;
-      font:20px "Courier New",monospace;
-      display:flex;align-items:center;padding-left:5px;
-      border-radius:2px;
+    .panel {
+      position: relative;
+      width: 768px;
+      height: 961px;
+      background: url("domofon-bg.png") no-repeat center/contain;
     }
-    .key{
-      position:absolute;
-      width:40px;height:40px;
-      background:transparent;border:none;cursor:pointer;
+    .screen {
+      position: absolute;
+      top: 65px;
+      left: 280px;
+      width: 200px;
+      height: 40px;
+      background: black;
+      color: #0f0;
+      font: bold 32px monospace;
+      text-align: center;
+      line-height: 40px;
+      border-radius: 5px;
     }
-    .k1{top:60px;left:20px;}
-    .k2{top:60px;left:80px;}
-    .k3{top:60px;left:140px;}
-    .k4{top:110px;left:20px;}
-    .k5{top:110px;left:80px;}
-    .k6{top:110px;left:140px;}
-    .k7{top:160px;left:20px;}
-    .k8{top:160px;left:80px;}
-    .k9{top:160px;left:140px;}
-    .kstar{top:210px;left:20px;}
-    .k0{top:210px;left:80px;}
-    .khash{top:210px;left:140px;}
-    .keyhole{
-      position:absolute;bottom:15px;left:85px;
-      width:40px;height:40px;background:transparent;
-      border:none;cursor:pointer;
+    .key {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
+    /* Button layout roughly based on visual image coordinates */
+    .k1 { top: 460px; left: 430px; }
+    .k2 { top: 460px; left: 510px; }
+    .k3 { top: 460px; left: 590px; }
+    .k4 { top: 540px; left: 430px; }
+    .k5 { top: 540px; left: 510px; }
+    .k6 { top: 540px; left: 590px; }
+    .k7 { top: 620px; left: 430px; }
+    .k8 { top: 620px; left: 510px; }
+    .k9 { top: 620px; left: 590px; }
+    .kk { top: 700px; left: 430px; } /* key icon */
+    .k0 { top: 700px; left: 510px; }
+    .kc { top: 700px; left: 590px; } /* C (clear) */
   </style>
 </head>
 <body>
   <div class="panel">
-    <div class="screen" id="disp">Wpisz kod</div>
+    <div class="screen" id="disp">----</div>
     <button class="key k1" onclick="press('1')"></button>
     <button class="key k2" onclick="press('2')"></button>
     <button class="key k3" onclick="press('3')"></button>
@@ -55,38 +71,82 @@
     <button class="key k7" onclick="press('7')"></button>
     <button class="key k8" onclick="press('8')"></button>
     <button class="key k9" onclick="press('9')"></button>
-    <button class="key kstar" onclick="press('*')"></button>
+    <button class="key kk" onclick="unlock()"></button>
     <button class="key k0" onclick="press('0')"></button>
-    <button class="key khash" onclick="press('#')"></button>
-    <button class="keyhole" onclick="unlock()"></button>
+    <button class="key kc" onclick="clearCode()"></button>
   </div>
 
   <script>
     let code = "";
     const disp = document.getElementById("disp");
-    function playBeep(freq=1000){
-      const c=new (AudioContext||webkitAudioContext)();
-      const o=c.createOscillator(), g=c.createGain();
-      o.type='square'; o.frequency.value = freq;
-      g.gain.value = 0.1;
-      o.connect(g); g.connect(c.destination);
-      o.start(); setTimeout(()=>{ o.stop(); c.close(); }, 100);
+
+    const tones = {
+      '0': 500,
+      '1': 550,
+      '2': 600,
+      '3': 650,
+      '4': 700,
+      '5': 750,
+      '6': 800,
+      '7': 850,
+      '8': 900,
+      '9': 950
+    };
+
+    function playTone(freq) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.value = freq;
+      gain.gain.value = 0.1;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      setTimeout(() => {
+        osc.stop();
+        ctx.close();
+      }, 100);
     }
-    function press(k){
-      playBeep(600 + code.length*100);
-      if(code.length>=4) code = "";
-      code += k;
-      disp.innerText = code;
+
+    function press(digit) {
+      if (code.length >= 4) code = "";
+      playTone(tones[digit]);
+      code += digit;
+      disp.textContent = code.padEnd(4, "-");
     }
-    function unlock(){
-      playBeep(1500);
-      if(code === "1234"){
-        disp.innerText = "Odblokowano";
+
+    function clearCode() {
+      code = "";
+      disp.textContent = "----";
+    }
+
+    function unlock() {
+      playTone(1200);
+      if (code === "2502") {
+        disp.textContent = "OK ✔";
       } else {
-        disp.innerText = "Błędny kod";
+        disp.textContent = "BŁĄD ✖";
       }
       code = "";
+      setTimeout(() => {
+        disp.textContent = "----";
+      }, 1500);
     }
   </script>
 </body>
 </html>
+'''
+
+# Save HTML file
+html_path = "/mnt/data/index.html"
+with open(html_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+# Create ZIP file
+zip_path = "/mnt/data/domofon_cp2503r_real.zip"
+with ZipFile(zip_path, "w") as zipf:
+    zipf.write(html_path, arcname="index.html")
+    zipf.write("/mnt/data/domofon-bg.png", arcname="domofon-bg.png")
+
+zip_path
