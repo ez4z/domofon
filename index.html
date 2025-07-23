@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Laskomex CP‑2503R symulator</title>
+  <style>
+    body{background:#111;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}
+    .panel{
+      position:relative;
+      width:211px; height:300px;
+      background:url("domofon-bg.png") no-repeat center/cover;
+    }
+    .screen{
+      position:absolute;top:15px;left:50px;
+      width:110px;height:25px;
+      background:#000;color:#0f0;
+      font:20px "Courier New",monospace;
+      display:flex;align-items:center;padding-left:5px;
+      border-radius:2px;
+    }
+    .key{
+      position:absolute;
+      width:40px;height:40px;
+      background:transparent;border:none;cursor:pointer;
+    }
+    .k1{top:60px;left:20px;}
+    .k2{top:60px;left:80px;}
+    .k3{top:60px;left:140px;}
+    .k4{top:110px;left:20px;}
+    .k5{top:110px;left:80px;}
+    .k6{top:110px;left:140px;}
+    .k7{top:160px;left:20px;}
+    .k8{top:160px;left:80px;}
+    .k9{top:160px;left:140px;}
+    .kstar{top:210px;left:20px;}
+    .k0{top:210px;left:80px;}
+    .khash{top:210px;left:140px;}
+    .keyhole{
+      position:absolute;bottom:15px;left:85px;
+      width:40px;height:40px;background:transparent;
+      border:none;cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="screen" id="disp">Wpisz kod</div>
+    <button class="key k1" onclick="press('1')"></button>
+    <button class="key k2" onclick="press('2')"></button>
+    <button class="key k3" onclick="press('3')"></button>
+    <button class="key k4" onclick="press('4')"></button>
+    <button class="key k5" onclick="press('5')"></button>
+    <button class="key k6" onclick="press('6')"></button>
+    <button class="key k7" onclick="press('7')"></button>
+    <button class="key k8" onclick="press('8')"></button>
+    <button class="key k9" onclick="press('9')"></button>
+    <button class="key kstar" onclick="press('*')"></button>
+    <button class="key k0" onclick="press('0')"></button>
+    <button class="key khash" onclick="press('#')"></button>
+    <button class="keyhole" onclick="unlock()"></button>
+  </div>
+
+  <script>
+    let code = "";
+    const disp = document.getElementById("disp");
+    function playBeep(freq=1000){
+      const c=new (AudioContext||webkitAudioContext)();
+      const o=c.createOscillator(), g=c.createGain();
+      o.type='square'; o.frequency.value = freq;
+      g.gain.value = 0.1;
+      o.connect(g); g.connect(c.destination);
+      o.start(); setTimeout(()=>{ o.stop(); c.close(); }, 100);
+    }
+    function press(k){
+      playBeep(600 + code.length*100);
+      if(code.length>=4) code = "";
+      code += k;
+      disp.innerText = code;
+    }
+    function unlock(){
+      playBeep(1500);
+      if(code === "1234"){
+        disp.innerText = "Odblokowano";
+      } else {
+        disp.innerText = "Błędny kod";
+      }
+      code = "";
+    }
+  </script>
+</body>
+</html>
